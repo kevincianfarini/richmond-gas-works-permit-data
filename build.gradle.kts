@@ -1,7 +1,5 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-
 plugins {
-    kotlin("jvm") version "1.7.10"
+    alias(libs.plugins.kotlin.multiplatform)
 }
 
 group = "org.climatechangemakers"
@@ -11,14 +9,20 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    testImplementation(kotlin("test"))
-}
+kotlin {
+    linuxX64 {
+        binaries {
+            executable {
+                entryPoint = "org.climatechangemakers.permitdata.main"
+            }
+        }
+    }
 
-tasks.test {
-    useJUnitPlatform()
-}
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+            }
+        }
+    }
 }
