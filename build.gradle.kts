@@ -23,11 +23,12 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(libs.clikt)
                 implementation(libs.kotlinx.coroutines)
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.ktor.client.curl)
-                implementation(libs.sqldelight.sqlite.driver)
                 implementation(libs.mordant)
+                implementation(libs.sqldelight.sqlite.driver)
             }
         }
         val commonTest by getting {
