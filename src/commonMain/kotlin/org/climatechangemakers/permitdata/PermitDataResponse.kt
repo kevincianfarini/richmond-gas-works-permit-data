@@ -23,7 +23,9 @@ import kotlinx.serialization.Serializable
   @SerialName("CompleteDate") val completeDate: String?,
   @SerialName("FinalDate") val finalDate: String?,
   @SerialName("RequestDate") val requestDate: String?,
-)
+) {
+  val permitType get() = PermitType.parse(caseTypeId, caseWorkClassId)
+}
 
 @Serializable data class Address(
   @SerialName("City") val city: String?,

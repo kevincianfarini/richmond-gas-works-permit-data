@@ -22,6 +22,8 @@ import kotlinx.serialization.encoding.Encoder
   @SerialName("ProfessionalLicenseCriteria") private val professionalLicenseCriteria: Map<String, String>,
   @SerialName("LicenseCriteria") private val licenseCriteria: Map<String, String>,
   @SerialName("ProjectCriteria") private val projctCriteria: Map<String, String>,
+  @SerialName("SortBy") private val sortBy: String,
+  @SerialName("SortAscending") private val sortAscending: Boolean,
 ) {
 
   constructor(permitType: PermitType) : this(
@@ -35,6 +37,8 @@ import kotlinx.serialization.encoding.Encoder
     professionalLicenseCriteria = emptyMap(),
     licenseCriteria = emptyMap(),
     projctCriteria = emptyMap(),
+    sortBy = "IssueDate",
+    sortAscending = false,
   )
 }
 
