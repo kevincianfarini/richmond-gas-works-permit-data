@@ -1,0 +1,47 @@
+import org.climatechangemakers.permitdata.PermitReason;
+import org.climatechangemakers.permitdata.InstallationDestination;
+
+CREATE TABLE permit (
+  status TEXT NOT NULL,
+  issued_date TEXT,
+  application_date TEXT,
+  expiration_date TEXT,
+  completion_date TEXT,
+  final_date TEXT,
+  request_date TEXT,
+  city TEXT,
+  postal_code TEXT,
+  full_address TEXT,
+  reason TEXT AS PermitReason NOT NULL,
+  destination TEXT AS InstallationDestination NOT NULL
+);
+
+insert:
+INSERT INTO permit(
+  status,
+  issued_date,
+  application_date,
+  expiration_date,
+  completion_date,
+  final_date,
+  request_date,
+  city,
+  postal_code,
+  full_address,
+  reason,
+  destination
+)
+VALUES(
+  :status,
+  :issuedDate,
+  :applicationDate,
+  :expirationDate,
+  :completionDate,
+  :finalDate,
+  :requestDate,
+  :city,
+  :postalCode,
+  :fullAddress,
+  :reason,
+  :destination
+);

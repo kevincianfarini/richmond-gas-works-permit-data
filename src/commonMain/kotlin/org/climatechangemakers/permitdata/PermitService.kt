@@ -21,7 +21,7 @@ class PermitService(private val json: Json) : Closeable {
       value = PermitDataRequest(permitType),
     )
     val response = client.post("https://energov.richmondgov.com/EnerGov_Prod/selfservice/api/energov/search/search") {
-      timeout { requestTimeoutMillis = 60_000 }
+      timeout { requestTimeoutMillis = Long.MAX_VALUE }
       headers {
         append("Accept", "application/json")
         append("Content-Type", "application/json;charset=utf-8")
