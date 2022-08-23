@@ -22,7 +22,9 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
+                implementation(libs.kotlinx.coroutines)
                 implementation(libs.kotlinx.serialization.json)
+                implementation(libs.ktor.client.curl)
             }
         }
         val commonTest by getting {

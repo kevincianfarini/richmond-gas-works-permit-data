@@ -42,7 +42,7 @@ class PermitDataRequestSerializationTest {
         |        "ExcludeCases": null,
         |        "EnableDescriptionSearch": false,
         |        "PageNumber": 1,
-        |        "PageSize": 100000,
+        |        "PageSize": 10000,
         |        "SortBy": "relevance",
         |        "SortAscending": false
         |    },

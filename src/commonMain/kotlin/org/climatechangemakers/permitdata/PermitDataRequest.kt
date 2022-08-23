@@ -26,7 +26,7 @@ import kotlinx.serialization.encoding.Encoder
 
   constructor(permitType: PermitType) : this(
     searchModule = 2,
-    permitCritera = PermitCriteria(permitType, 100_000),
+    permitCritera = PermitCriteria(permitType, 10_000),
     planCriteria = emptyMap(),
     inspectionCritera = emptyMap(),
     codeCaseCriteria = emptyMap(),
