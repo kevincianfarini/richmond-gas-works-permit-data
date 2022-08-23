@@ -2,6 +2,8 @@ package org.climatechangemakers.permitdata
 
 import app.cash.sqldelight.EnumColumnAdapter
 import app.cash.sqldelight.driver.native.NativeSqliteDriver
+import com.github.ajalt.mordant.animation.textAnimation
+import com.github.ajalt.mordant.terminal.Terminal
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
@@ -30,6 +32,10 @@ private suspend fun collectData() {
       destinationAdapter = EnumColumnAdapter(),
     ),
   )
+  val terminal = Terminal()
+  val progress = terminal.textAnimation<Int> { inserted ->
+    "Inserted $inserted permits."
+  }.also { it.update(0) }
 
 
   channelFlow {
@@ -59,6 +65,6 @@ private suspend fun collectData() {
       reason = record.permitType.reason,
       destination = record.permitType.installationDestination,
     )
-    println("Inserted ${index + 1} records...")
+    progress.update(index + 1)
   }
 }

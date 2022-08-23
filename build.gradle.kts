@@ -27,6 +27,7 @@ kotlin {
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.ktor.client.curl)
                 implementation(libs.sqldelight.sqlite.driver)
+                implementation(libs.mordant)
             }
         }
         val commonTest by getting {
