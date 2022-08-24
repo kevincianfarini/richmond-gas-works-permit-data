@@ -1,7 +1,11 @@
 package org.climatechangemakers.permitdata
 
 import app.cash.sqldelight.EnumColumnAdapter
+import app.cash.sqldelight.db.SqlDriver
+import app.cash.sqldelight.db.SqlSchema
 import app.cash.sqldelight.driver.native.NativeSqliteDriver
+import app.cash.sqldelight.driver.native.wrapConnection
+import co.touchlab.sqliter.DatabaseConfiguration
 import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.mordant.animation.textAnimation
@@ -57,15 +61,32 @@ class Parse : CliktCommand() {
   }.buffer(Channel.UNLIMITED)
 
   private fun createDb(path: String): Database = Database(
-    driver = NativeSqliteDriver(
-      schema = Database.Schema,
-      name = path,
-    ),
+    driver = createSqlDriver(path, Database.Schema),
     permitAdapter = Permit.Adapter(
       reasonAdapter = EnumColumnAdapter(),
       destinationAdapter = EnumColumnAdapter(),
     ),
   )
+
+  private fun createSqlDriver(
+    path: String,
+    schema: SqlSchema,
+  ): SqlDriver {
+    val splitPath = path.split("/")
+    return NativeSqliteDriver(
+      configuration = DatabaseConfiguration(
+        name = splitPath.last(),
+        version = schema.version,
+        create = { connection -> wrapConnection(connection, schema::create) },
+        upgrade = { connection, old, new ->
+          wrapConnection(connection) { schema.migrate(it, old, new) }
+        },
+        extendedConfig = DatabaseConfiguration.Extended(
+          basePath = splitPath.subList(0, splitPath.lastIndex - 1).joinToString("/"),
+        )
+      )
+    )
+  }
 }
 
 private fun PermitQueries.insertPermit(record: PermitResult) {
