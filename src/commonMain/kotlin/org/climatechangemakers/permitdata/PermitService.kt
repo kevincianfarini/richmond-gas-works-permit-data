@@ -8,12 +8,10 @@ import io.ktor.client.statement.*
 import io.ktor.utils.io.core.*
 import kotlinx.serialization.json.Json
 
-class PermitService(private val json: Json) : Closeable {
-
-  private val client = HttpClient(Curl) {
-    expectSuccess = true
-    install(HttpTimeout)
-  }
+class PermitService(
+  private val client: HttpClient,
+  private val json: Json
+) : Closeable {
 
   suspend fun getPermitData(permitType: PermitType): PermitDataResponse {
     val request = json.encodeToString(

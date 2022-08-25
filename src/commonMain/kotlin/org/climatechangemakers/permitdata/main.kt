@@ -10,13 +10,18 @@ import com.github.ajalt.clikt.core.CliktCommand
 import com.github.ajalt.clikt.parameters.arguments.argument
 import com.github.ajalt.mordant.animation.textAnimation
 import com.github.ajalt.mordant.terminal.Terminal
+import io.ktor.client.*
+import io.ktor.client.engine.curl.*
+import io.ktor.client.plugins.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.collectIndexed
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -28,26 +33,62 @@ fun main(args: Array<String>) = Parse().main(args)
 
 class Parse : CliktCommand() {
 
-  private val json = Json { ignoreUnknownKeys = true }
+  private val json = Json {
+    ignoreUnknownKeys = true
+    explicitNulls = false
+  }
+
   private val databasePath: String by argument(
     name = "Database File",
     help = "The path to which the SQLite database file will be created.",
   )
 
+  private val nominatimUrl: String by argument(
+    name = "Nominatim URL",
+    help = "The URL to a nominatim instance which performs geocoding.",
+  )
+
   override fun run() = runBlocking {
     val database = createDb(databasePath)
-    val progress = Terminal().textAnimation<Int> { inserted ->
+    val terminal = Terminal()
+    val insertProgress = terminal.textAnimation<Int> { inserted ->
       "Inserted $inserted permits."
     }.also { it.update(0) }
 
-      createPermitDataFlow().collectIndexed { index, record ->
-        database.permitQueries.insertPermit(record)
-        progress.update(index + 1)
+    val httpClient = HttpClient(Curl) {
+      install(HttpTimeout)
+    }
+
+    httpClient.use { client ->
+      createGeocodingFlow(
+        source = createPermitDataFlow(client),
+        client = client,
+      ).collectIndexed { index, (record, geocode) ->
+        database.permitQueries.insertPermit(record, geocode)
+        insertProgress.update(index + 1)
       }
+    }
   }
 
-  private fun createPermitDataFlow(): Flow<PermitResult> = channelFlow {
-    PermitService(json).use { service ->
+  private fun createGeocodingFlow(
+    source: Flow<PermitResult>,
+    client: HttpClient,
+  ): Flow<Pair<PermitResult, GeocodeResponse?>> {
+    val service = GeocodeService(nominatimUrl, client, json)
+    return source.map { record ->
+      val geocodeResult = record.address?.let { address ->
+        service.search(
+          address.streetAddress,
+          address.postalCode,
+        )
+      }
+
+      Pair(record, geocodeResult)
+    }
+  }
+
+  private fun createPermitDataFlow(client: HttpClient): Flow<PermitResult> = channelFlow {
+    PermitService(client, json).use { service ->
       coroutineScope {
         PermitType.values().forEach { type ->
           launch {
@@ -58,7 +99,7 @@ class Parse : CliktCommand() {
         }
       }
     }
-  }.buffer(Channel.UNLIMITED)
+  }.buffer(Channel.RENDEZVOUS)
 
   private fun createDb(path: String): Database = Database(
     driver = createSqlDriver(path, Database.Schema),
@@ -89,7 +130,10 @@ class Parse : CliktCommand() {
   }
 }
 
-private fun PermitQueries.insertPermit(record: PermitResult) {
+private fun PermitQueries.insertPermit(
+  record: PermitResult,
+  geocode: GeocodeResponse?,
+) {
   insert(
     status = record.status,
     issuedDate = record.issuedDate,
@@ -98,9 +142,13 @@ private fun PermitQueries.insertPermit(record: PermitResult) {
     completionDate = record.completeDate,
     finalDate = record.finalDate,
     requestDate = record.requestDate,
-    city = record.address?.city,
-    postalCode = record.address?.postalCode,
-    fullAddress = record.address?.fullAddress,
+    sourceCity = record.address?.city,
+    sourcePostCode = record.address?.postalCode,
+    sourceFullAddress = record.address?.fullAddress,
+    geocodedCity = geocode?.address?.county ?: geocode?.address?.city,
+    geocodedPostCode = geocode?.address?.postcode,
+    geocodedLatitude = geocode?.lat?.toDouble(),
+    geocodedLongitude = geocode?.lon?.toDouble(),
     reason = record.permitType.reason,
     destination = record.permitType.installationDestination,
   )
