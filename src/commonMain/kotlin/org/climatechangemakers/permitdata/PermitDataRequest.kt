@@ -26,9 +26,13 @@ import kotlinx.serialization.encoding.Encoder
   @SerialName("SortAscending") private val sortAscending: Boolean,
 ) {
 
-  constructor(permitType: PermitType) : this(
+  constructor(permitType: PermitType, issueDateToString: String?) : this(
     searchModule = 2,
-    permitCritera = PermitCriteria(permitType, 10_000),
+    permitCritera = PermitCriteria(
+      permitTypeId = permitType,
+      pageSize = 10_000,
+      issueDateToString = issueDateToString,
+    ),
     planCriteria = emptyMap(),
     inspectionCritera = emptyMap(),
     codeCaseCriteria = emptyMap(),
@@ -74,14 +78,14 @@ import kotlinx.serialization.encoding.Encoder
   @SerialName("SortAscending") private val sortAscending: Boolean,
 ) {
 
-  constructor(permitTypeId: PermitType, pageSize: Int) : this(
+  constructor(permitTypeId: PermitType, pageSize: Int, issueDateToString: String?) : this(
     permitNumber = null,
     permitTypeId = permitTypeId,
     permitWorkClassId = null,
     permitStatusId = "none",
     projectName = null,
     issueDateFrom = null,
-    issueDateTo = null,
+    issueDateTo = issueDateToString,
     address = null,
     description = null,
     expireDateFrom = null,
@@ -99,7 +103,7 @@ import kotlinx.serialization.encoding.Encoder
     enableDescriptionSearch = false,
     pageNumber = 1,
     pageSize = pageSize,
-    sortBy = "relevance",
+    sortBy = "IssueDate",
     sortAscending = false,
   )
 }

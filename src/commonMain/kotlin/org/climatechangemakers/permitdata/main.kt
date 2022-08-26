@@ -15,7 +15,7 @@ import io.ktor.client.engine.curl.*
 import io.ktor.client.plugins.*
 import io.ktor.utils.io.core.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.awaitClose
+import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.buffer
@@ -88,18 +88,33 @@ class Parse : CliktCommand() {
   }
 
   private fun createPermitDataFlow(client: HttpClient): Flow<PermitResult> = channelFlow {
-    PermitService(client, json).use { service ->
-      coroutineScope {
-        PermitType.values().forEach { type ->
-          launch {
-            service.getPermitData(type).result.permitResults.forEach { permit ->
-              send(permit)
-            }
-          }
-        }
+    val service = PermitService(client, json)
+    coroutineScope {
+      PermitType.values().forEach { type ->
+        launch { queryExhaustively(service, type) }
       }
     }
   }.buffer(Channel.RENDEZVOUS)
+
+  private suspend fun ProducerScope<PermitResult>.queryExhaustively(
+    service: PermitService,
+    type: PermitType,
+  ) {
+    var nextPageKey: String? = null
+    do {
+      val response = service.getPermitData(type, nextPageKey)
+      response.result.permitResults.forEach { permit ->
+        send(permit)
+      }
+      nextPageKey = response
+        .result
+        .permitResults
+        .asSequence()
+        .map { it.issuedDate }
+        .last { it != null }
+        ?.takeIf { response.result.totalPeges > 1 }
+    } while (nextPageKey != null)
+  }
 
   private fun createDb(path: String): Database = Database(
     driver = createSqlDriver(path, Database.Schema),

@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 )
 
 @Serializable class PermitDataResponseResult(
-  @SerialName("TotalFound") val numRecords: Int,
+  @SerialName("TotalPages") val totalPeges: Int,
   @SerialName("EntityResults") val permitResults: List<PermitResult>,
 )
 

@@ -13,10 +13,10 @@ class PermitService(
   private val json: Json
 ) : Closeable {
 
-  suspend fun getPermitData(permitType: PermitType): PermitDataResponse {
+  suspend fun getPermitData(permitType: PermitType, issueDateToString: String?): PermitDataResponse {
     val request = json.encodeToString(
       serializer = PermitDataRequest.serializer(),
-      value = PermitDataRequest(permitType),
+      value = PermitDataRequest(permitType, issueDateToString),
     )
     val response = client.post("https://energov.richmondgov.com/EnerGov_Prod/selfservice/api/energov/search/search") {
       timeout { requestTimeoutMillis = Long.MAX_VALUE }
