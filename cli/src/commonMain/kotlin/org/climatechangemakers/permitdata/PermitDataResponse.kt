@@ -13,6 +13,7 @@ import kotlinx.serialization.Serializable
 )
 
 @Serializable data class PermitResult(
+  @SerialName("CaseId") val caseId: String,
   @SerialName("CaseTypeId") private val caseTypeId: String,
   @SerialName("CaseWorkclassId") private val caseWorkClassId: String,
   @SerialName("Address") val address: Address?,

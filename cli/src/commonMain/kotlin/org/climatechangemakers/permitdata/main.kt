@@ -150,6 +150,7 @@ private fun PermitQueries.insertPermit(
   geocode: GeocodeResponse?,
 ) {
   insert(
+    caseId = record.caseId,
     status = record.status,
     issuedDate = record.issuedDate,
     applicationDate = record.applyDate,
