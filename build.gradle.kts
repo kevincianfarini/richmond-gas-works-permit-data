@@ -13,16 +13,7 @@ repositories {
 
 kotlin {
 
-    val hostOs = System.getProperty("os.name")
-    val isMingwX64 = hostOs.startsWith("Windows")
-    val nativeTarget = when {
-        hostOs == "Mac OS X" -> macosX64("native")
-        hostOs == "Linux" -> linuxX64("native")
-        isMingwX64 -> mingwX64("native")
-        else -> throw GradleException("Host OS is not supported in Kotlin/Native.")
-    }
-
-    nativeTarget.apply {
+    linuxX64 {
         binaries {
             executable {
                 entryPoint = "org.climatechangemakers.permitdata.main"
@@ -31,29 +22,27 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation(libs.clikt)
-                implementation(libs.kotlinx.coroutines)
-                implementation(libs.kotlinx.serialization.json)
-                implementation(libs.ktor.client.curl)
-                implementation(libs.mordant)
-                implementation(libs.sqldelight.sqlite.driver)
-            }
+        commonMain.dependencies {
+            implementation(libs.clikt)
+            implementation(libs.kotlinx.coroutines)
+            implementation(libs.kotlinx.serialization.json)
+            implementation(libs.ktor.client.curl)
+            implementation(libs.mordant)
+            implementation(libs.sqldelight.sqlite.driver)
         }
-        val commonTest by getting {
-            dependencies {
-                implementation(libs.kotlin.test)
-            }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
         }
     }
 }
 
 sqldelight {
-    database("Database") {
-        packageName = "org.climatechangemakers.permitdata.database"
-        dialect(libs.sqldelight.sqlite.dialect.get())
-        deriveSchemaFromMigrations = false
-        verifyMigrations = false
+    databases {
+        create("Database") {
+            packageName.set("org.climatechangemakers.permitdata.database")
+            dialect(libs.sqldelight.sqlite.dialect.get())
+            deriveSchemaFromMigrations.set(false)
+            verifyMigrations.set(false)
+        }
     }
 }

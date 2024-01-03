@@ -1,6 +1,7 @@
 package org.climatechangemakers.permitdata
 
 import app.cash.sqldelight.EnumColumnAdapter
+import app.cash.sqldelight.db.QueryResult
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.db.SqlSchema
 import app.cash.sqldelight.driver.native.NativeSqliteDriver
@@ -126,16 +127,16 @@ class Parse : CliktCommand() {
 
   private fun createSqlDriver(
     path: String,
-    schema: SqlSchema,
+    schema: SqlSchema<QueryResult.Value<Unit>>,
   ): SqlDriver {
     val splitPath = path.split("/")
     return NativeSqliteDriver(
       configuration = DatabaseConfiguration(
         name = splitPath.last(),
-        version = schema.version,
+        version = schema.version.toInt(),
         create = { connection -> wrapConnection(connection, schema::create) },
         upgrade = { connection, old, new ->
-          wrapConnection(connection) { schema.migrate(it, old, new) }
+          wrapConnection(connection) { schema.migrate(it, old.toLong(), new.toLong()) }
         },
         extendedConfig = DatabaseConfiguration.Extended(
           basePath = splitPath.subList(0, splitPath.lastIndex - 1).joinToString("/"),

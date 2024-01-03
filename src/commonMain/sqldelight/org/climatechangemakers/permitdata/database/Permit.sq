@@ -1,7 +1,7 @@
 import org.climatechangemakers.permitdata.PermitReason;
 import org.climatechangemakers.permitdata.InstallationDestination;
 
-CREATE TABLE permit (
+CREATE TABLE permit(
   case_id TEXT NOT NULL PRIMARY KEY,
   status TEXT NOT NULL,
   issued_date TEXT,
