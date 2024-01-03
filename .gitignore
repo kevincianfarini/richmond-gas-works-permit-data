@@ -1,4 +1,4 @@
 .idea/
-cli/.gradle/
+.gradle/
 build/
 *.db*
